@@ -44,20 +44,36 @@
                                             M-Tugas | Login
                                         </h1>
                                     </div>
-                                    <form class="user">
+                                    <form class="user" method="POST" action="{{ route('loginproses')}}">
+                                        @csrf
                                         <div class="form-group">
-                                            <input type="email" class="form-control form-control-user"
+                                            <input type="email" class="form-control form-control-user @error('email')
+                                                is-invalid
+                                            @enderror"
                                                 id="exampleInputEmail" aria-describedby="emailHelp"
-                                                placeholder="Masukkan Email Anda" name="email">
+                                                placeholder="Masukkan Email Anda" name="email" value="{{ old('email')}}">
+                                                @error('email')
+                                                    <small class="text-danger">
+                                                        {{ $message }}
+                                                    </small>
+                                                @enderror
                                         </div>
                                         <div class="form-group">
-                                            <input type="password" class="form-control form-control-user"
+                                            <input type="password" class="form-control form-control-user @error('password')
+                                                is-invalid
+                                            @enderror"
                                                 id="exampleInputPassword" placeholder="Masukkan Password Anda" name="password">
+                                                @error('password')
+                                                <small class="text-danger">
+                                                    {{ $message }}
+                                                </small>
+                                            @enderror
+
                                         </div>
                                     
-                                        <buttion type="submit" href="#" class="btn btn-primary btn-user btn-block">
+                                        <button type="submit" class="btn btn-primary btn-user btn-block">
                                             Login
-                                        </buttion>
+                                        </button>
                                         
                                     </form>
                                     <hr>
@@ -89,6 +105,27 @@
 
     <!-- Custom scripts for all pages-->
     <script src="{{ asset('sbadmin2/js/sb-admin-2.min.js')}}"></script>
+    <script src="{{ asset('sweetalert2/dist/sweetalert2.all.min.js')}}"></script>
+    @session('success')
+        <script>
+            Swal.fire({
+                title: "sukses",
+                text: "{{ session('success') }}",
+                icon: "success"
+            });
+        </script>
+    @endsession
+
+    @session('error')
+    <script>
+        Swal.fire({
+            title: "gagal",
+            text: "{{ session('error') }}",
+            icon: "error"
+        });
+    </script>
+@endsession
+    
 
 </body>
 
