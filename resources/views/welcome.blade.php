@@ -166,7 +166,7 @@
                 </div>
               </div><!-- End Info Item -->
 
-              <iframe src="https://www.google.com/maps/embed?pb=!1m13!1m8!1m3!1d1027.8831194684221!2d113.40187933634583!3d-8.242500565092659!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zOMKwMTQnMzEuMiJTIDExM8KwMjQnMDcuMSJF!5e0!3m2!1sid!2sid!4v1745670801441!5m2!1sid!2sid" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+              <iframe class="col-xl-12" src="https://www.google.com/maps/embed?pb=!1m13!1m8!1m3!1d1027.8831194684221!2d113.40187933634583!3d-8.242500565092659!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zOMKwMTQnMzEuMiJTIDExM8KwMjQnMDcuMSJF!5e0!3m2!1sid!2sid!4v1745670801441!5m2!1sid!2sid" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
           </div>
         </div>

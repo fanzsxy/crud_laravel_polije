@@ -28,5 +28,9 @@ Route::middleware('checkLogin')->group(function(){
     Route::post('user/update/{id}',[UserController::class,'update'])->name ('userUpdate');
     Route::delete('user/destroy/{id}',[UserController::class,'destroy'])->name ('userDestroy');
 
+    Route::get('user/export/excel', [UserController::class, 'exportExcel'])->name('userExportExcel');
+    Route::get('user/pdf', [UserController::class, 'pdf'])->name('userPdf');
+
+
     Route::get('tugas',[TugasController::class,'index'])->name ('tugas'); 
 });

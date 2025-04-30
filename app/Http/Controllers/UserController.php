@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Spatie\SimpleExcel\SimpleExcelWriter;
 
 class UserController extends Controller
 {
@@ -97,5 +98,24 @@ class UserController extends Controller
         $user->delete();
         return redirect()->route('user')->with('success','Data Berhasil Dihapus');
     }
+    public function exportExcel()
+{
+    $fileName =  'data_user_'.date('d-m-Y_H.i.s').'.xlsx';
+    $filePath = storage_path("app/{$fileName}");
 
+    SimpleExcelWriter::create($filePath, 'xlsx')
+        ->addRows(
+            User::all()->map(function ($user) {
+                return [
+                    'Nama'     => $user->nama,
+                    'Email'    => $user->email,
+                    'Jabatan'  => $user->jabatan,
+                    'Status'   => $user->is_tugas ? 'Sudah Ditugaskan' : 'Belum Ditugaskan',
+                ];
+            })->toArray()
+        );
+
+    return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
+  }
+  
 }
