@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Hash;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Spatie\SimpleExcel\SimpleExcelWriter;
 
 class UserController extends Controller
@@ -99,23 +102,55 @@ class UserController extends Controller
         return redirect()->route('user')->with('success','Data Berhasil Dihapus');
     }
     public function exportExcel()
-{
-    $fileName =  'data_user_'.date('d-m-Y_H.i.s').'.xlsx';
-    $filePath = storage_path("app/{$fileName}");
-
-    SimpleExcelWriter::create($filePath, 'xlsx')
-        ->addRows(
-            User::all()->map(function ($user) {
-                return [
-                    'Nama'     => $user->nama,
-                    'Email'    => $user->email,
-                    'Jabatan'  => $user->jabatan,
-                    'Status'   => $user->is_tugas ? 'Sudah Ditugaskan' : 'Belum Ditugaskan',
-                ];
-            })->toArray()
-        );
-
-    return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
-  }
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+    
+        $sheet->mergeCells('A1:E1');
+        $sheet->setCellValue('A1', 'Data User');
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+    
+        $sheet->setCellValue('A2', 'Tanggal: ' . now()->format('d-m-Y'));
+        $sheet->setCellValue('E2', 'Pukul: ' . now()->format('H:i:s'));
+    
+        $sheet->fromArray(['No', 'Nama', 'Email', 'Jabatan', 'Status'], null, 'A4');
+    
+        $users = \App\Models\User::all();
+        $row = 5;
+        foreach ($users as $index => $user) {
+            $sheet->setCellValue("A{$row}", $index + 1);
+            $sheet->setCellValue("B{$row}", $user->nama);
+            $sheet->setCellValue("C{$row}", $user->email);
+            $sheet->setCellValue("D{$row}", $user->jabatan);
+            $sheet->setCellValue("E{$row}", $user->is_tugas ? 'Sudah Ditugaskan' : 'Belum Ditugaskan');
+            $row++;
+        }
+    
+        foreach (range('A', 'E') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+    
+        $filename = 'Data_User_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+        $writer = new Xlsx($spreadsheet);
+        $temp_file = tempnam(sys_get_temp_dir(), $filename);
+        $writer->save($temp_file);
+    
+        return response()->download($temp_file, $filename)->deleteFileAfterSend(true);
+    }
+  public function pdf()
+  {
+      $filename = now()->format('d-m-Y_H.i.s') . '_data_user.pdf';
   
+      $data = [
+          'user' => User::all(),
+          'tanggal' => now()->format('d-m-Y'),
+          'jam' => now()->format('H.i.s'),
+      ];
+  
+      $pdf = Pdf::loadView('admin.user.pdf', ['data' => $data])
+                ->setPaper('A4', 'landscape'); // A4 landscape agar lebih lebar
+  
+      return $pdf->download($filename);
+  }
 }

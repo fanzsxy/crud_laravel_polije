@@ -15,11 +15,11 @@
             </a>
         </div>
         <div>
-            <a href="{{ route('userExportExcel') }}" class="btn btn-success btn-sm">
+            <a href="{{ route('user.exportExcel') }}" class="btn btn-success btn-sm">
                 <i class="fas fa-file-excel mr-2"></i>
                 Excel
             </a>
-            <a href="" class="btn btn-danger btn-sm">
+            <a href="{{route('userPdf')}}" class="btn btn-danger btn-sm">
                 <i class="fas fa-file-pdf mr-2"></i>
                 Pdf
             </a>
