@@ -6,9 +6,11 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Hash;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Spatie\SimpleExcel\SimpleExcelWriter;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class UserController extends Controller
 {
@@ -101,36 +103,78 @@ class UserController extends Controller
         $user->delete();
         return redirect()->route('user')->with('success','Data Berhasil Dihapus');
     }
+   
     public function exportExcel()
     {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
     
+        // Judul
         $sheet->mergeCells('A1:E1');
         $sheet->setCellValue('A1', 'Data User');
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     
+        // Tanggal & Jam
         $sheet->setCellValue('A2', 'Tanggal: ' . now()->format('d-m-Y'));
-        $sheet->setCellValue('E2', 'Pukul: ' . now()->format('H:i:s'));
+        $sheet->setCellValue('A3', 'Pukul: ' . now()->format('H:i:s'));
+        $sheet->mergeCells('A2:E2');
+        $sheet->mergeCells('A3:E3');
+        $sheet->getStyle('A2:A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     
-        $sheet->fromArray(['No', 'Nama', 'Email', 'Jabatan', 'Status'], null, 'A4');
+        // Header tabel
+        $header = ['No', 'Nama', 'Email', 'Jabatan', 'Status'];
+        $sheet->fromArray($header, null, 'A5');
     
+        // Styling Header
+        $sheet->getStyle('A5:E5')->applyFromArray([
+            'font' => ['bold' => true],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'D9D9D9'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                ]
+            ]
+        ]);
+    
+        // Data isi
         $users = \App\Models\User::all();
-        $row = 5;
+        $row = 6;
         foreach ($users as $index => $user) {
             $sheet->setCellValue("A{$row}", $index + 1);
             $sheet->setCellValue("B{$row}", $user->nama);
             $sheet->setCellValue("C{$row}", $user->email);
             $sheet->setCellValue("D{$row}", $user->jabatan);
             $sheet->setCellValue("E{$row}", $user->is_tugas ? 'Sudah Ditugaskan' : 'Belum Ditugaskan');
+    
+            // Rata tengah & border untuk tiap baris
+            $sheet->getStyle("A{$row}:E{$row}")->applyFromArray([
+                'alignment' => [
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                    'vertical' => Alignment::VERTICAL_CENTER,
+                ],
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => Border::BORDER_THIN,
+                    ]
+                ]
+            ]);
             $row++;
         }
     
+        // Auto size kolom
         foreach (range('A', 'E') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
     
+        // Output
         $filename = 'Data_User_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
         $writer = new Xlsx($spreadsheet);
         $temp_file = tempnam(sys_get_temp_dir(), $filename);
@@ -138,9 +182,10 @@ class UserController extends Controller
     
         return response()->download($temp_file, $filename)->deleteFileAfterSend(true);
     }
+    
   public function pdf()
   {
-      $filename = now()->format('d-m-Y_H.i.s') . '_data_user.pdf';
+      $filename = 'Data_User_' . now()->format('d-m-Y_H.i.s') . '.pdf';
   
       $data = [
           'user' => User::all(),
