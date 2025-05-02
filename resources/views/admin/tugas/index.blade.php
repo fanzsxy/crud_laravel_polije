@@ -15,7 +15,7 @@
             </a>
         </div>
         <div>
-            <a href="{{ route('user.exportExcel') }}" class="btn btn-success btn-sm">
+            <a href="{{ route('tugas.exportExcel') }}" class="btn btn-success btn-sm">
                 <i class="fas fa-file-excel mr-2"></i>
                 Excel
             </a>

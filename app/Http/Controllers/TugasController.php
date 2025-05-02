@@ -5,6 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Tugas;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class TugasController extends Controller
 {
@@ -51,7 +57,7 @@ class TugasController extends Controller
         $user->is_tugas = true;
         $user->save();
         
-        return redirect()->route('user')->with('success','Data Berhasil Ditambahkan');
+        return redirect()->route('tugas')->with('success','Data Berhasil Ditambahkan');
     }
     public function edit($id){
         $data = array(
@@ -94,4 +100,95 @@ class TugasController extends Controller
         $user->save();
         return redirect()->route('tugas')->with('success','Data Berhasil Dihapus');
     }
+    public function exportExcel()
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+    
+        // Judul
+        $sheet->mergeCells('A1:E1');
+        $sheet->setCellValue('A1', 'Data Tugas');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    
+        // Tanggal & Jam
+        $sheet->setCellValue('A2', 'Tanggal: ' . now()->format('d-m-Y'));
+        $sheet->setCellValue('A3', 'Pukul: ' . now()->format('H:i:s'));
+        $sheet->mergeCells('A2:E2');
+        $sheet->mergeCells('A3:E3');
+        $sheet->getStyle('A2:A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    
+        // Header tabel
+        $header = ['No', 'Nama', 'Tugas', 'Tanggal Mulai', 'Tanggal Selesai'];
+        $sheet->fromArray($header, null, 'A5');
+    
+        // Styling Header
+        $sheet->getStyle('A5:E5')->applyFromArray([
+            'font' => ['bold' => true],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'D9D9D9'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => ['borderStyle' => Border::BORDER_THIN],
+            ]
+        ]);
+    
+        // Ambil data tugas + relasi user
+        $tugas = Tugas::with('user')->get();
+        $row = 6;
+        $tugas = Tugas::with('user')->get();
+    $row = 6;
+    foreach ($tugas as $index => $item) {
+        $sheet->setCellValue("A{$row}", $index + 1);
+        $sheet->setCellValue("B{$row}", $item->user->nama ?? '-');
+        $sheet->setCellValue("C{$row}", $item->tugas);
+        $sheet->setCellValue("D{$row}", $item->tanggal_mulai);
+        $sheet->setCellValue("E{$row}", $item->tanggal_selesai);
+
+        $sheet->getStyle("A{$row}:E{$row}")->applyFromArray([
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => ['borderStyle' => Border::BORDER_THIN],
+            ]
+        ]);
+        $row++;
+    }
+
+    // Autofit kolom
+    foreach (range('A', 'E') as $col) {
+        $sheet->getColumnDimension($col)->setAutoSize(true);
+    }
+
+    // Autofit tinggi row
+    $sheet->getDefaultRowDimension()->setRowHeight(-1);
+
+    // Output
+    $writer = new Xlsx($spreadsheet);
+    $filename = 'Data_Tugas_' . now()->format('Ymd_His') . '.xlsx';
+
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header("Content-Disposition: attachment; filename=\"$filename\"");
+    $writer->save("php://output");
+    exit;
+}
+public function Pdf()
+{
+    $data = [
+        'tanggal' => now()->format('d-m-Y'),
+        'jam' => now()->format('H:i:s'),
+        'tugas' => Tugas::with('user')->get()
+    ];
+
+    $pdf = PDF::loadView('admin.tugas.pdf', compact('data'));
+    return $pdf->download('data_tugas.pdf');
+}
+
 }
