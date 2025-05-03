@@ -29,6 +29,7 @@ class TugasController extends Controller
             $data = array(
                 "title"         => " Data Tugas",
                 "menuKaryawanTugas" => "active",
+                "tugas" => Tugas::with('user')->where('user_id',$user->id)->first(),
             );
             return view('karyawan.tugas.index' ,$data);
         }
@@ -192,14 +193,29 @@ class TugasController extends Controller
 }
 public function Pdf()
 {
+    $user = Auth::user();  
     $filename = 'Data_Tugas_' . now()->format('d-m-Y_H.i.s') . '.pdf';
-    $data = [
-        'tanggal' => now()->format('d-m-Y'),
-        'jam' => now()->format('H:i:s'),
-        'tugas' => Tugas::with('user')->get()
-    ];
+    if ($user->jabatan=='Admin') {
+        $data = [
+            'tanggal' => now()->format('d-m-Y'),
+            'jam' => now()->format('H:i:s'),
+            'tugas' => Tugas::with('user')->get()
+        ];
+    
+        $pdf = PDF::loadView('admin.tugas.pdf', compact('data'));
+        return $pdf->download($filename);
+    } else {
+        $data = [
+            'tanggal' => now()->format('d-m-Y'),
+            'jam' => now()->format('H:i:s'),
+           "tugas" => Tugas::with('user')->where('user_id', $user->id)->get(),
 
-    $pdf = PDF::loadView('admin.tugas.pdf', compact('data'));
-    return $pdf->download($filename);
+        ];
+    
+        $pdf = PDF::loadView('karyawan.tugas.pdf', compact('data'));
+        return $pdf->download($filename);
+    
+   
+}
 }
 }

@@ -23,6 +23,7 @@ Route::get('logout',[AuthController::class,'logout'])->name ('logout');
 Route::middleware('checkLogin')->group(function(){
     Route::get('dashboard',[DashboardController::class,'index'])->name ('dashboard'); 
     Route::get('tugas',[TugasController::class,'index'])->name ('tugas'); 
+    Route::get('tugas/pdf', [TugasController::class, 'pdf'])->name('tugasPdf');
 
     Route::middleware('isAdmin')->group(function(){
         Route::get('user',[UserController::class,'index'])->name ('user'); 
@@ -45,7 +46,7 @@ Route::middleware('checkLogin')->group(function(){
         Route::delete('tugas/destroy/{id}',[TugasController::class,'destroy'])->name ('tugasDestroy');
     
         Route::get('tugas/export-excel', [TugasController::class, 'exportExcel'])->name('tugas.exportExcel');
-        Route::get('user/pdf', [TugasController::class, 'pdf'])->name('userPdf');
+       
     
     });
   
