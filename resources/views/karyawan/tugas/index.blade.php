@@ -62,7 +62,11 @@
         @else
             <div class="row">
                 <div class="col-6">
-                    <span class="bagde badge-danger">
+                    status 
+                </div>
+                <div class="col-6">
+                    :
+                    <span class="badge badge-danger">
                         Belum Ditugaskan
                     </span>
                 </div>
