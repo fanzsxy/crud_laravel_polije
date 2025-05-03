@@ -7,8 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-
-class checkLogin
+class isLogin
 {
     /**
      * Handle an incoming request.
@@ -17,11 +16,12 @@ class checkLogin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check()) {
-        return $next($request);
-        } else {
-            return redirect()->route('login')->with('error', 'tolong login terlebih dahulu');
+        if (Auth::check()){
+            return redirect()->route('dashboard')->with('success','Anda Sudah Login');
+            
         }
+            return $next($request);
         
+
     }
 }

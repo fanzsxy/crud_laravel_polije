@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Tugas;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -15,12 +16,22 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 class TugasController extends Controller
 {
     public function index(){
-        $data = array(
-            "title"         => " Data Tugas",
-            "menuAdminTugas" => "active",
-            'tugas'          => Tugas::with('user')->get(),
-        );
-        return view('admin/tugas/index' ,$data);
+        $user = Auth::user();
+
+        if ($user->jabatan == 'Admin') {
+            $data = array(
+                "title"         => " Data Tugas",
+                "menuAdminTugas" => "active",
+                'tugas'          => Tugas::with('user')->get(),
+            );
+            return view('admin.tugas.index' ,$data);
+        }else{
+            $data = array(
+                "title"         => " Data Tugas",
+                "menuKaryawanTugas" => "active",
+            );
+            return view('karyawan.tugas.index' ,$data);
+        }
     }   
     public function create(){
         $data = array(
@@ -181,6 +192,7 @@ class TugasController extends Controller
 }
 public function Pdf()
 {
+    $filename = 'Data_Tugas_' . now()->format('d-m-Y_H.i.s') . '.pdf';
     $data = [
         'tanggal' => now()->format('d-m-Y'),
         'jam' => now()->format('H:i:s'),
@@ -188,7 +200,6 @@ public function Pdf()
     ];
 
     $pdf = PDF::loadView('admin.tugas.pdf', compact('data'));
-    return $pdf->download('data_tugas.pdf');
+    return $pdf->download($filename);
 }
-
 }
